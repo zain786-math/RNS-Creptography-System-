@@ -1,0 +1,96 @@
+# ==============================================================================
+# TITLE: Residue Number System (RNS) & Chinese Remainder Theorem (CRT) Crypto Engine
+# CORE AREAS: Pure Mathematics (Number Theory) & Computer Science (Cryptography)
+# AUTHOR: BSc Mathematics & Computer Science Research Project
+# ==============================================================================
+
+import math
+
+def extended_gcd(a, b):
+    """Extended Euclidean Algorithm to find the modular multiplicative inverse."""
+    if a == 0:
+        return b, 0, 1
+    gcd, x1, y1 = extended_gcd(b % a, a)
+    x = y1 - (b // a) * x1
+    y = x1
+    return gcd, x, y
+
+def mod_inverse(a, m):
+    """Calculates (1/a) mod m."""
+    gcd, x, y = extended_gcd(a, m)
+    if gcd != 1:
+        raise ValueError(f"Modular inverse does not exist for {a} and {m}")
+    return x % m
+
+class RNSCryptoEngine:
+    def __init__(self, moduli):
+        """Initialize engine with a set of pairwise coprime integers."""
+        self.moduli = moduli
+        self.M = math.prod(moduli) # Total dynamic range
+        
+    def encrypt_to_rns(self, number):
+        """Forward Conversion: Converts a standard integer into RNS residues."""
+        if number >= self.M:
+            raise ValueError(f"Number {number} exceeds the dynamic range maximum capacity of {self.M}")
+        return [number % m for m in self.moduli]
+
+    def decrypt_from_rns(self, residues):
+        """Reverse Conversion: Reconstructs the integer using Chinese Remainder Theorem (CRT)."""
+        total = 0
+        for i in range(len(self.moduli)):
+            m_i = self.moduli[i]
+            r_i = residues[i]
+            M_i = self.M // m_i
+            # Find modular inverse of M_i with respect to m_i
+            inv_i = mod_inverse(M_i, m_i)
+            total += r_i * M_i * inv_i
+        return total % self.M
+
+    def encrypt_string(self, plain_text):
+        """Converts a text string into an encrypted array of RNS vectors."""
+        encrypted_vectors = []
+        for char in plain_text:
+            ascii_val = ord(char)
+            rns_vector = self.encrypt_to_rns(ascii_val)
+            encrypted_vectors.append(rns_vector)
+        return encrypted_vectors
+
+    def decrypt_string(self, encrypted_vectors):
+        """Reconstructs the original text string from RNS vectors via CRT."""
+        decrypted_chars = []
+        for vector in encrypted_vectors:
+            ascii_val = self.decrypt_from_rns(vector)
+            decrypted_chars.append(chr(ascii_val))
+        return "".join(decrypted_chars)
+
+# --- Demonstration execution ---
+if __name__ == "__main__":
+    print("=" * 70)
+    print("  INITIALIZING RESIDUE NUMBER SYSTEM (RNS) MATHEMATICAL RESEARCH ENGINE")
+    print("=" * 70)
+    
+    # Selecting mutually coprime dynamic moduli range
+    # 199, 211, 223 are all prime and their product provides a large dynamic range
+    chosen_moduli = [199, 211, 223]
+    engine = RNSCryptoEngine(chosen_moduli)
+    
+    print(f"[+] Selected Moduli Base Set (m1, m2, m3): {chosen_moduli}")
+    print(f"[+] Total Dynamic Numerical Range (M): {engine.M}\n")
+    
+    # Sample plaintext payload representing BSc target area
+    research_payload = "BSc Math CS Crypto Project 2026"
+    print(f"[*] Input Plaintext Payload: '{research_payload}'")
+    
+    # 1. Execute Forward RNS Conversion (Encryption Phase)
+    encrypted_data = engine.encrypt_string(research_payload)
+    print(f"[+] Encrypted RNS Vectors (Sample first 3 chars): {encrypted_data[:3]}... (Truncated)")
+    
+    # 2. Execute Reverse CRT Mathematical Reconstruction (Decryption Phase)
+    decrypted_output = engine.decrypt_string(encrypted_data)
+    print(f"[+] CRT Reconstructed Plaintext: '{decrypted_output}'")
+    
+    # Validation safety check
+    assert research_payload == decrypted_output, "Mathematical Reconstruction Failed!"
+    print("\n[SUCCESS] Mathematical vector space mapping and perfect CRT recovery completed.")
+    print("=" * 70)
+                
